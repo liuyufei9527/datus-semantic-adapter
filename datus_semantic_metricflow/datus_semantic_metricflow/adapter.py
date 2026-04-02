@@ -15,6 +15,7 @@ from datus_semantic_metricflow.models import (
 # Import MetricFlow API
 from metricflow.api.metricflow_client import MetricFlowClient
 from metricflow.configuration.datus_config_handler import DatusConfigHandler
+from metricflow.configuration.dict_config_handler import DictConfigHandler, build_config_dict_from_db_params
 
 logger = get_logger(__name__)
 
@@ -39,9 +40,29 @@ class MetricFlowAdapter(BaseSemanticAdapter):
             from metricflow.engine.utils import build_user_configured_model_from_config
             from metricflow.sql_clients.sql_utils import make_sql_client_from_config
 
-            # Initialize MetricFlow client using DatusConfigHandler
-            config_path = getattr(config, 'config_path', None)
-            self._config_handler = DatusConfigHandler(namespace=self.namespace, config_path=config_path)
+            # Initialize config handler: dict-based or file-based
+            if config.db_config:
+                model_path = self._resolve_model_path(config)
+                config_dict = build_config_dict_from_db_params(
+                    db_type=config.db_config.get("type", ""),
+                    host=config.db_config.get("host", ""),
+                    port=str(config.db_config.get("port", "")),
+                    username=config.db_config.get("username", ""),
+                    password=config.db_config.get("password", ""),
+                    database=config.db_config.get("database", ""),
+                    schema=config.db_config.get("schema", ""),
+                    uri=config.db_config.get("uri", ""),
+                    warehouse=config.db_config.get("warehouse", ""),
+                    account=config.db_config.get("account", ""),
+                    project_id=config.db_config.get("project_id", ""),
+                    model_path=model_path,
+                )
+                self._config_handler = DictConfigHandler(config_dict)
+                logger.info("Using DictConfigHandler (in-memory config, no file read)")
+            else:
+                config_path = getattr(config, 'config_path', None)
+                self._config_handler = DatusConfigHandler(namespace=self.namespace, config_path=config_path)
+                logger.info("Using DatusConfigHandler (reading agent.yml from disk)")
 
             # Build client components using the config handler
             sql_client = make_sql_client_from_config(self._config_handler)
@@ -59,6 +80,13 @@ class MetricFlowAdapter(BaseSemanticAdapter):
         except Exception as e:
             logger.error(f"Failed to initialize MetricFlowAdapter: {e}", exc_info=True)
             raise
+
+    @staticmethod
+    def _resolve_model_path(config: MetricFlowConfig) -> str:
+        """Resolve semantic models path from config."""
+        import pathlib
+        agent_home = config.agent_home or "~/.datus"
+        return str(pathlib.Path(agent_home).expanduser().resolve() / "semantic_models" / config.namespace)
 
     # Semantic Model Interface
 
