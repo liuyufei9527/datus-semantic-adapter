@@ -58,9 +58,11 @@ class MetricFlowAdapter(BaseSemanticAdapter):
                     model_path=model_path,
                 )
                 self._config_handler = DictConfigHandler(config_dict)
+                logger.info("Using DictConfigHandler (in-memory config, no file read)")
             else:
                 config_path = getattr(config, 'config_path', None)
                 self._config_handler = DatusConfigHandler(namespace=self.namespace, config_path=config_path)
+                logger.info("Using DatusConfigHandler (reading agent.yml from disk)")
 
             # Build client components using the config handler
             sql_client = make_sql_client_from_config(self._config_handler)
@@ -83,8 +85,8 @@ class MetricFlowAdapter(BaseSemanticAdapter):
     def _resolve_model_path(config: MetricFlowConfig) -> str:
         """Resolve semantic models path from config."""
         import pathlib
-        agent_home = config.agent_home or str(pathlib.Path.home() / ".datus")
-        return str(pathlib.Path(agent_home) / "semantic_models" / config.namespace)
+        agent_home = config.agent_home or "~/.datus"
+        return str(pathlib.Path(agent_home).expanduser().resolve() / "semantic_models" / config.namespace)
 
     # Semantic Model Interface
 
