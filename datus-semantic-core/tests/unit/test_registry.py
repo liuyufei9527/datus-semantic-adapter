@@ -39,10 +39,12 @@ def clean_registry():
     saved_adapters = dict(SemanticAdapterRegistry._adapters)
     saved_factories = dict(SemanticAdapterRegistry._factories)
     saved_metadata = dict(SemanticAdapterRegistry._metadata)
+    saved_initialized = SemanticAdapterRegistry._initialized
     yield
     SemanticAdapterRegistry._adapters = saved_adapters
     SemanticAdapterRegistry._factories = saved_factories
     SemanticAdapterRegistry._metadata = saved_metadata
+    SemanticAdapterRegistry._initialized = saved_initialized
 
 
 class TestRegistration:
@@ -81,6 +83,25 @@ class TestRegistration:
         config = _DummyConfig()
         adapter = SemanticAdapterRegistry.create_adapter("create_test", config)
         assert isinstance(adapter, _DummyAdapter)
+        assert adapter.config is config
+        assert adapter.service_type == "dummy"  # falls back to config.service_type
+
+    def test_create_adapter_constructor_failure_propagates(self):
+        class _FailingAdapter(_DummyAdapter):
+            def __init__(self, config):
+                raise RuntimeError("init failed")
+
+        SemanticAdapterRegistry.register(service_type="fail_ctor", adapter_class=_FailingAdapter)
+        with pytest.raises(RuntimeError, match="init failed"):
+            SemanticAdapterRegistry.create_adapter("fail_ctor", _DummyConfig())
+
+    def test_discover_adapters_handles_entry_points_failure(self):
+        from unittest.mock import patch
+
+        SemanticAdapterRegistry._initialized = False
+        with patch("importlib.metadata.entry_points", side_effect=Exception("broken")):
+            SemanticAdapterRegistry.discover_adapters()
+        assert SemanticAdapterRegistry._initialized is True
 
 
 class TestAdapterMetadata:

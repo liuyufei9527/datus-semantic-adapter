@@ -3,6 +3,8 @@
 
 """Unit tests for datus_semantic_core.models"""
 
+import pytest
+
 from datus_semantic_core.models import (
     AnomalyContext,
     DimensionInfo,
@@ -161,9 +163,21 @@ class TestValidationResult:
         assert vr.valid is False
         assert len(vr.issues) == 1
 
+    def test_validation_issue_with_location(self):
+        from datus_semantic_core.models import ValidationIssue
+
+        issue = ValidationIssue(severity="warning", message="bad join", location="models/orders.yml:42")
+        assert issue.location == "models/orders.yml:42"
+
 
 class TestAnomalyContext:
     def test_basic(self):
         ac = AnomalyContext(rule="wow_gt_20", observed_change_pct=25.5)
         assert ac.rule == "wow_gt_20"
         assert ac.observed_change_pct == 25.5
+
+    def test_anomaly_context_forbids_extra_fields(self):
+        from pydantic import ValidationError
+
+        with pytest.raises(ValidationError):
+            AnomalyContext(rule="test", observed_change_pct=10.0, unknown_field="bad")

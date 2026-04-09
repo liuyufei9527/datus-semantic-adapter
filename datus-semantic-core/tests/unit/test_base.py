@@ -57,6 +57,11 @@ class TestBaseSemanticAdapterInit:
         adapter = _ConcreteAdapter(config=config)
         assert adapter.service_type == "cube"
 
+    def test_service_type_empty_when_no_fallback(self):
+        config = object()
+        adapter = _ConcreteAdapter(config=config)
+        assert adapter.service_type == ""
+
 
 class TestDefaultMethods:
     def test_get_semantic_model_returns_none(self):
