@@ -97,7 +97,7 @@ class MetricFlowAdapter(BaseSemanticAdapter):
         catalog_name: str = "",
         database_name: str = "",
         schema_name: str = "",
-    ) -> Optional[Dict[str, Any]]:
+    ):
         """MetricFlow doesn't directly expose semantic models."""
         return None
 
@@ -106,7 +106,7 @@ class MetricFlowAdapter(BaseSemanticAdapter):
         catalog_name: str = "",
         database_name: str = "",
         schema_name: str = "",
-    ) -> List[str]:
+    ):
         """MetricFlow uses semantic models internally."""
         return []
 

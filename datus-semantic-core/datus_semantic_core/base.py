@@ -19,7 +19,7 @@ class BaseSemanticAdapter(ABC):
 
     def __init__(self, config: Any, service_type: str = ""):
         self.config = config
-        self.service_type = service_type
+        self.service_type = service_type or getattr(config, "service_type", "")
         self.namespace = getattr(config, "namespace", None)
 
     # ==================== Semantic Model Interface ====================
