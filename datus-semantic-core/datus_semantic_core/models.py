@@ -2,7 +2,7 @@
 # Licensed under the Apache License, Version 2.0.
 # See http://www.apache.org/licenses/LICENSE-2.0 for details.
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, Field
 
@@ -39,7 +39,7 @@ class MetricDefinition(BaseModel):
 
     name: str = Field(..., description="Metric name")
     description: Optional[str] = Field(None, description="Metric description")
-    type: Optional[Any] = Field(None, description="Metric type (simple, ratio, derived, etc.)")
+    type: Optional[str] = Field(None, description="Metric type (simple, ratio, derived, etc.)")
     dimensions: List[str] = Field(default_factory=list, description="Available dimensions for this metric")
     measures: List[str] = Field(default_factory=list, description="Underlying measures used")
     unit: Optional[str] = Field(None, description="Unit of measurement (e.g., 'USD', 'count', 'percent')")
@@ -63,7 +63,7 @@ class QueryResult(BaseModel):
 class ValidationIssue(BaseModel):
     """A single validation issue."""
 
-    severity: str = Field(..., description="Severity level: error, warning, info")
+    severity: Literal["error", "warning", "info"] = Field(..., description="Severity level: error, warning, info")
     message: str = Field(..., description="Issue description")
     location: Optional[str] = Field(None, description="Location in config where issue was found")
 

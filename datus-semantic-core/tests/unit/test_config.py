@@ -22,16 +22,18 @@ class TestSemanticAdapterConfig:
         assert c.timeout_seconds == 60
 
     def test_auth_fields(self):
+        expected_auth = "test-auth-value"
+        expected_pass = "test-pass-value"
         c = SemanticAdapterConfig(
             api_base_url="http://localhost:4000/cubejs-api",
-            auth_token="jwt.token.here",
+            auth_token=expected_auth,
             username="admin",
-            password="secret",
+            password=expected_pass,
         )
         assert c.api_base_url == "http://localhost:4000/cubejs-api"
-        assert c.auth_token == "jwt.token.here"
+        assert c.auth_token == expected_auth
         assert c.username == "admin"
-        assert c.password == "secret"
+        assert c.password == expected_pass
 
     def test_extra_fields_allowed(self):
         c = SemanticAdapterConfig(custom_field="custom")
