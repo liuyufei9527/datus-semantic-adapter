@@ -1,6 +1,6 @@
 from typing import Dict, Optional
 
-from datus.tools.semantic_tools import SemanticAdapterConfig
+from datus_semantic_core import SemanticAdapterConfig
 from pydantic import Field
 
 

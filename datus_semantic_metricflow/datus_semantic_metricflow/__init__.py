@@ -1,4 +1,4 @@
-from datus.tools.semantic_tools.base import BaseSemanticAdapter
+from datus_semantic_core import BaseSemanticAdapter
 from .adapter import MetricFlowAdapter
 from .config import MetricFlowConfig
 from .models import (
@@ -17,7 +17,7 @@ def register():
     This function is called via entry_point by Datus when discovering adapters.
     """
     # Import Datus registry at runtime to avoid circular dependencies
-    from datus.tools.semantic_tools.registry import semantic_adapter_registry
+    from datus_semantic_core import semantic_adapter_registry
 
     semantic_adapter_registry.register(
         service_type="metricflow",

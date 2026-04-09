@@ -1,7 +1,8 @@
 from typing import Any, Dict, List, Optional
 
-from datus.tools.semantic_tools.base import BaseSemanticAdapter
-from datus.utils.loggings import get_logger
+import logging
+
+from datus_semantic_core import BaseSemanticAdapter
 from datus_semantic_metricflow.config import MetricFlowConfig
 from datus_semantic_metricflow.models import (
     DimensionInfo,
@@ -17,7 +18,7 @@ from metricflow.api.metricflow_client import MetricFlowClient
 from metricflow.configuration.datus_config_handler import DatusConfigHandler
 from metricflow.configuration.dict_config_handler import DictConfigHandler, build_config_dict_from_db_params
 
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class MetricFlowAdapter(BaseSemanticAdapter):

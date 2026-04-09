@@ -1,11 +1,11 @@
 """
 Models for MetricFlow adapter.
 
-Re-exports common models from datus.tools.semantic_tools.models.
+Re-exports common models from datus_semantic_core.
 """
 
-# Re-export common models from datus-agent
-from datus.tools.semantic_tools.models import (
+# Re-export common models from datus-semantic-core
+from datus_semantic_core.models import (
     DimensionInfo,
     MetricDefinition,
     QueryResult,
