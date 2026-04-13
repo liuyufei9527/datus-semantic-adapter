@@ -318,7 +318,7 @@ class _AdapterOverridingOptionalMethods(BaseSemanticAdapter):
         return ValidationResult(valid=True)
 
     def list_semantic_models(self, catalog_name="", database_name="", schema_name=""):
-        return [SemanticModelInfo(name="orders", platform_type="cube")]
+        return [SemanticModelInfo(name="orders_cube", table_name="orders", platform_type="cube")]
 
 
 TestAdapterOverridingOptionalMethodsContract = make_semantic_contract_suite(

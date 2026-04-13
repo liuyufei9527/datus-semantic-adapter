@@ -3,10 +3,13 @@
 
 """Unit tests for datus_semantic_core.registry"""
 
+from unittest.mock import MagicMock, patch
+
 import pytest
 
 from datus_semantic_core.base import BaseSemanticAdapter
 from datus_semantic_core.config import SemanticAdapterConfig
+from datus_semantic_core.exceptions import SemanticCoreException
 from datus_semantic_core.registry import AdapterMetadata, SemanticAdapterRegistry
 
 
@@ -102,6 +105,71 @@ class TestRegistration:
         with patch("importlib.metadata.entry_points", side_effect=Exception("broken")):
             SemanticAdapterRegistry.discover_adapters()
         assert SemanticAdapterRegistry._initialized is True
+
+    def test_create_adapter_can_be_satisfied_by_discovery(self):
+        discovered = MagicMock(spec=_DummyAdapter)
+
+        def _discover():
+            SemanticAdapterRegistry.register(
+                service_type="entrypoint_service",
+                adapter_class=_DummyAdapter,
+                factory=lambda config: discovered,
+                config_class=_DummyConfig,
+            )
+
+        with (
+            patch.object(SemanticAdapterRegistry, "discover_adapters", side_effect=_discover) as mock_discover,
+            patch.object(SemanticAdapterRegistry, "_try_load_adapter") as mock_try_load,
+        ):
+            adapter = SemanticAdapterRegistry.create_adapter("entrypoint_service", _DummyConfig())
+
+        mock_discover.assert_called_once()
+        mock_try_load.assert_not_called()
+        assert adapter is discovered
+
+    def test_create_adapter_falls_back_to_convention_import_after_discovery(self):
+        loaded = MagicMock(spec=_DummyAdapter)
+
+        def _try_load(service_type):
+            assert service_type == "convention_service"
+            SemanticAdapterRegistry.register(
+                service_type="convention_service",
+                adapter_class=_DummyAdapter,
+                factory=lambda config: loaded,
+                config_class=_DummyConfig,
+            )
+
+        with (
+            patch.object(SemanticAdapterRegistry, "discover_adapters") as mock_discover,
+            patch.object(SemanticAdapterRegistry, "_try_load_adapter", side_effect=_try_load) as mock_try_load,
+        ):
+            adapter = SemanticAdapterRegistry.create_adapter("convention_service", _DummyConfig())
+
+        mock_discover.assert_called_once()
+        mock_try_load.assert_called_once_with("convention_service")
+        assert adapter is loaded
+
+    def test_try_load_adapter_raises_for_internal_missing_dependency(self):
+        missing = ModuleNotFoundError("No module named 'definitely_missing_dependency'")
+        missing.name = "definitely_missing_dependency"
+
+        with patch("importlib.import_module", side_effect=missing):
+            with pytest.raises(SemanticCoreException, match="missing dependency 'definitely_missing_dependency'"):
+                SemanticAdapterRegistry._try_load_adapter("broken")
+
+    def test_try_load_adapter_ignores_missing_top_level_module(self):
+        missing = ModuleNotFoundError("No module named 'datus_semantic_absent'")
+        missing.name = "datus_semantic_absent"
+
+        with patch("importlib.import_module", side_effect=missing):
+            SemanticAdapterRegistry._try_load_adapter("absent")
+
+        assert not SemanticAdapterRegistry.is_registered("absent")
+
+    def test_try_load_adapter_raises_for_generic_import_error(self):
+        with patch("importlib.import_module", side_effect=ImportError("bad binary extension")):
+            with pytest.raises(SemanticCoreException, match="bad binary extension"):
+                SemanticAdapterRegistry._try_load_adapter("broken")
 
 
 class TestAdapterMetadata:

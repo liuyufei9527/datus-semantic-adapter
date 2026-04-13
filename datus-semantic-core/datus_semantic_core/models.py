@@ -24,6 +24,10 @@ class SemanticModelInfo(BaseModel):
 
     name: str = Field(..., description="Model name (cube name, explore name, semantic model name)")
     description: Optional[str] = Field(None, description="Model description")
+    table_name: Optional[str] = Field(None, description="Physical table name backing this semantic model")
+    catalog_name: Optional[str] = Field(None, description="Physical catalog name for the backing table")
+    database_name: Optional[str] = Field(None, description="Physical database name for the backing table")
+    schema_name: Optional[str] = Field(None, description="Physical schema name for the backing table")
     platform_type: Optional[str] = Field(
         None, description="Platform-native type (e.g. 'cube', 'view', 'explore', 'semantic_model')"
     )

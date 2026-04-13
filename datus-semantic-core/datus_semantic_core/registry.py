@@ -100,6 +100,8 @@ class SemanticAdapterRegistry:
         service_type_lower = service_type.lower()
 
         if service_type_lower not in cls._adapters:
+            cls.discover_adapters()
+        if service_type_lower not in cls._adapters:
             cls._try_load_adapter(service_type_lower)
 
         if service_type_lower not in cls._adapters:
@@ -118,18 +120,31 @@ class SemanticAdapterRegistry:
     @classmethod
     def _try_load_adapter(cls, service_type: str):
         """Attempt to dynamically load a plugin adapter."""
-        try:
-            import importlib
+        import importlib
 
-            module_name = f"datus_semantic_{service_type}"
+        module_name = f"datus_semantic_{service_type}"
+        try:
             module = importlib.import_module(module_name)
             if hasattr(module, "register"):
                 module.register()
                 logger.info(f"Dynamically loaded semantic adapter: {service_type}")
-        except ImportError:
-            logger.debug(f"No semantic adapter found for: {service_type}")
+        except ModuleNotFoundError as e:
+            if e.name == module_name:
+                logger.debug(f"No semantic adapter found for: {service_type}")
+                return
+            raise SemanticCoreException(
+                f"Failed to import semantic adapter '{service_type}': missing dependency '{e.name}'"
+            ) from e
+        except ImportError as e:
+            raise SemanticCoreException(
+                f"Failed to import semantic adapter '{service_type}': {e}"
+            ) from e
+        except SemanticCoreException:
+            raise
         except Exception as e:
-            logger.warning(f"Failed to load semantic adapter {service_type}: {e}")
+            raise SemanticCoreException(
+                f"Failed to load semantic adapter '{service_type}': {e}"
+            ) from e
 
     @classmethod
     def discover_adapters(cls):

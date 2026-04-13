@@ -68,19 +68,24 @@ class TestSemanticModelInfo:
     def test_minimal(self):
         m = SemanticModelInfo(name="orders")
         assert m.name == "orders"
+        assert m.table_name is None
         assert m.dimensions == []
         assert m.measures == []
         assert m.extra == {}
 
     def test_full(self):
         m = SemanticModelInfo(
-            name="orders",
+            name="orders_cube",
             description="Order cube",
+            table_name="orders",
+            database_name="analytics",
             platform_type="cube",
             dimensions=[DimensionInfo(name="status", type="string")],
             measures=["orders.count"],
             extra={"connectedComponent": 1},
         )
+        assert m.table_name == "orders"
+        assert m.database_name == "analytics"
         assert m.platform_type == "cube"
         assert len(m.dimensions) == 1
         assert m.dimensions[0].type == "string"
@@ -94,6 +99,7 @@ class TestSemanticModelInfo:
     def test_roundtrip(self):
         m = SemanticModelInfo(
             name="x",
+            table_name="x_table",
             dimensions=[DimensionInfo(name="id", type="number", is_primary_key=True)],
             measures=["x.count"],
         )
