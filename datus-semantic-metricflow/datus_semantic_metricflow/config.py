@@ -1,6 +1,6 @@
 from typing import Dict, Optional
 
-from datus.tools.semantic_tools import SemanticAdapterConfig
+from datus_semantic_core import SemanticAdapterConfig
 from pydantic import Field
 
 
@@ -15,6 +15,3 @@ class MetricFlowConfig(SemanticAdapterConfig):
         description="Database config dict (type, host, port, username, password, database, schema, uri, etc.)",
     )
     agent_home: Optional[str] = Field(None, description="Datus agent home path, for resolving model_path")
-
-    class Config:
-        extra = "allow"

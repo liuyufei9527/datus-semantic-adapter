@@ -7,7 +7,7 @@ echo "Installing datus-semantic-metricflow with metricflow submodule..."
 
 # Check if we're in the right directory
 if [ ! -f "pyproject.toml" ]; then
-    echo "Error: Must run this script from datus_semantic_metricflow directory"
+    echo "Error: Must run this script from datus-semantic-metricflow directory"
     exit 1
 fi
 
